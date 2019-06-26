@@ -98,6 +98,6 @@ def updateTotalScores(): # Update the main page values for total scores.
 if __name__ == "__main__":
     print(CYAN + "Akatsuki's cron - v{}.".format(VERSION) + ENDC)
     start_time = time.time()
-    #calculateRanks()
+    calculateRanks()
     updateTotalScores()
     print(GREEN + "Cronjob execution completed.\n" + MAGENTA + "Time: {}ms.".format(round((time.time() - start_time) * 1000, 2)) + ENDC)
