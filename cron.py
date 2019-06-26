@@ -4,8 +4,12 @@ from mysql.connector import errorcode
 import time
 import configparser
 
+# Akatsuki-cron-py version number.
+VERSION = 1.05
+
 # Console colours
 CYAN		= '\033[96m'
+MAGENTA     = '\033[95m'
 GREEN 		= '\033[92m'
 RED 		= '\033[91m'
 ENDC 		= '\033[0m'
@@ -37,8 +41,8 @@ else:
     SQL = cnx.cursor()
 
 
-if __name__ == "__main__":
-    print(CYAN + "Running cron to calculate PP for all users in all gamemodes.\n" + ENDC)
+def calculateRanks(): # Calculate hanayo ranks based off db pp values.
+    print(CYAN + "Calculating ranks for all users in all gamemodes." + ENDC)
 
     start_time = time.time()
 
@@ -74,4 +78,26 @@ if __name__ == "__main__":
                 if country != "xx" and country != "":
                     r.zadd("ripple:{rx}board:".format(rx="relax" if table == "rx" else "leader") + modes.get(gamemode) + ":" + country, int(userID), float(pp))
 
-    print(GREEN + "Calculations complete.\n\nTime taken: {}".format(time.time() - start_time) + ENDC)
+    print(GREEN + "Successfully completed rank calculations." + ENDC)
+
+
+def updateTotalScores(): # Update the main page values for total scores.
+    print(CYAN + "Updating total score values." + ENDC)
+
+    # Vanilla.
+    SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM users_stats WHERE 1")
+    r.set("ripple:submitted_scores", str(round(int(SQL.fetchone()[0]) / 1000000, 2) + "m"))
+
+    # Relax.
+    SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM rx_stats WHERE 1")
+    r.set("ripple:submitted_scores_relax", str(round(int(SQL.fetchone()[0]) / 1000000, 2) + "m"))
+
+    print(GREEN + "Successfully completed updating total score values." + ENDC)
+
+
+if __name__ == "__main__":
+    print(CYAN + "Akatsuki's cron - v{}.".format(VERSION) + ENDC)
+    start_time = time.time()
+    #calculateRanks()
+    updateTotalScores()
+    print(GREEN + "Cronjob execution completed.\n" + MAGENTA + "Time: {}ms.".format(round((time.time() - start_time) * 1000, 2)) + ENDC)
