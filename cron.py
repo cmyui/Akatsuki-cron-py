@@ -86,11 +86,11 @@ def updateTotalScores(): # Update the main page values for total scores.
 
     # Vanilla.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM users_stats WHERE 1")
-    r.set("ripple:submitted_scores", str(round(int(SQL.fetchone()[0]) / 1000000, 2) + "m"))
+    r.set("ripple:submitted_scores", str(round(int(SQL.fetchone()[0]) / 1000000, 2)) + "m")
 
     # Relax.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM rx_stats WHERE 1")
-    r.set("ripple:submitted_scores_relax", str(round(int(SQL.fetchone()[0]) / 1000000, 2) + "m"))
+    r.set("ripple:submitted_scores_relax", str(round(int(SQL.fetchone()[0]) / 1000000, 2)) + "m")
 
     print(GREEN + "Successfully completed updating total score values." + ENDC)
 
