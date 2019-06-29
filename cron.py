@@ -57,7 +57,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
 
     for table in tables:
         print("Calculating {}.".format("Relax" if table == "rx" else "Vanilla"))
-        for gamemode in range(0, 3):
+        for gamemode in range(0, 4):
             print("Mode: {}".format(modes.get(gamemode)))
             sql_prepare = """
             SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country
