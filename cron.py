@@ -5,7 +5,7 @@ import time
 import configparser
 
 # Akatsuki-cron-py version number.
-VERSION = 1.05
+VERSION = 1.10
 
 # Console colours
 CYAN		= '\033[96m'
@@ -95,9 +95,42 @@ def updateTotalScores(): # Update the main page values for total scores.
     print(GREEN + "Successfully completed updating total score values." + ENDC)
 
 
+def removeExpiredDonorTags(): # Remove supporter tags from users who no longer have them owo.
+    print(CYAN + "Cleaning expired donation perks and badges." + ENDC)
+    SQL.execute("SELECT id, username, privileges FROM users WHERE privileges & 4 AND donor_expire < UNIX_TIMESTAMP(NOW())")
+    expired_donors = SQL.fetchall()
+
+    for user in expired_donors:
+        donor_type = user[2] & 8388608
+
+        print("Removing {}'s {}.".format(user[1], "Premium" if donor_type else "Supporter"))
+
+        if donor_type:
+           SQL.execute("UPDATE users SET privileges = privileges - 8388612 WHERE id = %s", (user[0],))
+        else:
+           SQL.execute("UPDATE users SET privileges = privileges - 4 WHERE id = %s", (user[0],))
+
+        SQL.execute("SELECT id FROM user_badges WHERE badge IN (59, 36) AND user = %s", (user[0],))
+        badges = SQL.fetchall()
+
+        for badge in badges:
+            SQL.execute("DELETE FROM user_badges WHERE id = %s", (badge[0],))
+
+    # Grab a count of the expired badges to print.
+    # TODO: make this use SQL.rowcount or w/e its called. I know it exists.
+    SQL.execute("SELECT COUNT(*) FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < UNIX_TIMESTAMP(NOW())")
+    expired_badges = SQL.fetchone()[0]
+
+    # Wipe expired badges.
+    SQL.execute("DELETE user_badges FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < UNIX_TIMESTAMP(NOW())")
+
+    print(GREEN + "Cleaned {} expired donor tags and {} expired badges.".format(len(expired_donors), expired_badges))
+
+
 if __name__ == "__main__":
     print(CYAN + "Akatsuki's cron - v{}.".format(VERSION) + ENDC)
     start_time = time.time()
     calculateRanks()
     updateTotalScores()
+    removeExpiredDonorTags()
     print(GREEN + "Cronjob execution completed.\n" + MAGENTA + "Time: {}ms.".format(round((time.time() - start_time) * 1000, 2)) + ENDC)
