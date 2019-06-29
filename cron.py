@@ -78,7 +78,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
                 if country != "xx" and country != "":
                     r.zadd("ripple:{rx}board:".format(rx="relax" if table == "rx" else "leader") + modes.get(gamemode) + ":" + country, int(userID), float(pp))
 
-    print(GREEN + "Successfully completed rank calculations." + ENDC)
+    print(GREEN + "-> Successfully completed rank calculations." + ENDC)
 
 
 def updateTotalScores(): # Update the main page values for total scores.
@@ -92,7 +92,7 @@ def updateTotalScores(): # Update the main page values for total scores.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM rx_stats WHERE 1")
     r.set("ripple:submitted_scores_relax", str(round(int(SQL.fetchone()[0]) / 1000000, 2)) + "m")
 
-    print(GREEN + "Successfully completed updating total score values." + ENDC)
+    print(GREEN + "-> Successfully completed updating total score values." + ENDC)
 
 
 def removeExpiredDonorTags(): # Remove supporter tags from users who no longer have them owo.
@@ -124,13 +124,23 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     # Wipe expired badges.
     SQL.execute("DELETE user_badges FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < UNIX_TIMESTAMP(NOW())")
 
-    print(GREEN + "Cleaned {} expired donor tags and {} expired badges.".format(len(expired_donors), expired_badges))
+    print(GREEN + "-> Successfully cleaned {} expired donor tags and {} expired badges.".format(len(expired_donors), expired_badges))
 
 
 if __name__ == "__main__":
     print(CYAN + "Akatsuki's cron - v{}.".format(VERSION) + ENDC)
+
+    # Begin timing the cron's runtime.
     start_time = time.time()
+
+    print("")
     calculateRanks()
+
+    print("")
     updateTotalScores()
+
+    print("")
     removeExpiredDonorTags()
-    print(GREEN + "Cronjob execution completed.\n" + MAGENTA + "Time: {}ms.".format(round((time.time() - start_time) * 1000, 2)) + ENDC)
+
+    print("")
+    print(GREEN + "-> Cronjob execution completed.\n" + MAGENTA + "Time: {}ms.".format(round((time.time() - start_time) * 1000, 2)) + ENDC)
