@@ -42,13 +42,13 @@ else:
 
 
 def calculateRanks(): # Calculate hanayo ranks based off db pp values.
-    print(CYAN + "Calculating ranks for all users in all gamemodes." + ENDC)
+    print(CYAN + "-> Calculating ranks for all users in all gamemodes." + ENDC)
 
     start_time = time.time()
 
     tables = ["rx", "users"]
 
-    modes = {
+    modes = { # TODO use this for range thing idk if i can just smack a dict in it
         0: "std",
         1: "taiko",
         2: "ctb",
@@ -56,7 +56,9 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     }
 
     for table in tables:
+        print("Calculating {}.".format("Relax" if table == "rx" else "Vanilla"))
         for gamemode in range(0, 3):
+            print("Mode: {}".format(modes.get(gamemode)))
             sql_prepare = """
             SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country
             FROM {t}_stats
@@ -82,7 +84,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
 
 
 def updateTotalScores(): # Update the main page values for total scores.
-    print(CYAN + "Updating total score values." + ENDC)
+    print(CYAN + "-> Updating total score values." + ENDC)
 
     # Vanilla.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM users_stats WHERE 1")
@@ -96,7 +98,7 @@ def updateTotalScores(): # Update the main page values for total scores.
 
 
 def removeExpiredDonorTags(): # Remove supporter tags from users who no longer have them owo.
-    print(CYAN + "Cleaning expired donation perks and badges." + ENDC)
+    print(CYAN + "-> Cleaning expired donation perks and badges." + ENDC)
     SQL.execute("SELECT id, username, privileges FROM users WHERE privileges & 4 AND donor_expire < UNIX_TIMESTAMP(NOW())")
     expired_donors = SQL.fetchall()
 
