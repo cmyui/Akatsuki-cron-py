@@ -153,4 +153,4 @@ if __name__ == "__main__":
     addSupporterBadges()
 
     print("")
-    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {round((time.time() - start_time) * 1000, 2)}ms.{ENDC}")
+    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {round((time.time() - start_time), 2)} seconds.{ENDC}")
