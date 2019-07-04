@@ -104,7 +104,7 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     for user in expired_donors:
         donor_type = user[2] & 8388608
 
-        print(f"Removing {user[1]}'s {'Premium' if donor_type else 'Supporter'}.")
+        print(f"Removing {user[1]}'{'s' if user[1].endswith('s') else ''} {'Premium' if donor_type else 'Supporter'}.")
 
         if donor_type:
            SQL.execute(f"UPDATE users SET privileges = privileges - 8388612 WHERE id = {int(user[0])}")
