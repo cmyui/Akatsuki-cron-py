@@ -55,7 +55,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
         for gamemode in gamemodes:
             print(f"Mode: {gamemode}")
 
-            SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats ORDER BY pp_{gm} LEFT JOIN users on {t}_stats.id = users.id WHERE NOT users.privileges & 1".format(t=table, gm=gamemode))
+            SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats LEFT JOIN users on {t}_stats.id = users.id WHERE NOT users.privileges & 1 ORDER BY pp_{gm} DESC".format(t=table, gm=gamemode))
             resp = SQL.fetchall()
 
             for column in resp:
