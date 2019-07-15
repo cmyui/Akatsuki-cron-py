@@ -51,11 +51,13 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     gamemodes = ["std", "taiko", "ctb", "mania"]
 
     for table in tables:
+        table_boardname = "relax" if table == 'rx' else "leader"
+
         print(f"Calculating {'Relax' if table == 'rx' else 'Vanilla'}.")
         for gamemode in gamemodes:
             print(f"Mode: {gamemode}")
 
-            SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats ORDER BY pp_{gm}".format(t=table, gm=gamemode))
+            SQL.execute("SELECT " + table + "_stats.id, " + table + "_stats.pp_" + gamemode + ", " + table + "_stats.country FROM " + table + "_stats ORDER BY pp_" + gamemode)
             resp = SQL.fetchall()
 
             for column in resp:
@@ -63,11 +65,11 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
                 pp      = column[1]
                 country = column[2].lower()
 
-                r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}", int(userID), float(pp))
+                r.zadd(f"ripple:" + table_boardname + "board:" + gamemode, int(userID), float(pp))
 
                 if country and country != "xx":
                     r.zincrby("hanayo:country_list", country, 1)
-                    r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}:{country}", int(userID), float(pp))
+                    r.zadd(f"ripple:" + table_boardname + "board:" + gamemode + ":" + country, int(userID), float(pp))
 
     print(f"{GREEN}-> Successfully completed rank calculations.\n{MAGENTA}Time: {round((time.time() - start_time_ranks), 2)} seconds.{ENDC}")
     return
