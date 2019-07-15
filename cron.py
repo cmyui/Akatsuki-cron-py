@@ -2,10 +2,10 @@ import redis
 import mysql.connector
 from mysql.connector import errorcode
 import time
-import configparser
+import requests
 
 # Akatsuki-cron-py version number.
-VERSION = 1.17
+VERSION = 1.18
 
 # Console colours
 CYAN		= '\033[96m'
@@ -14,10 +14,27 @@ GREEN 		= '\033[92m'
 RED 		= '\033[91m'
 ENDC 		= '\033[0m'
 EMPT        = ''
-# Configuration.
-config = configparser.ConfigParser()
-config.sections()
-config.read('config.ini')
+
+# Initalize values as None for now.
+SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, WEBHOOK = [None] * 5
+
+# Config.
+config = open('config.ini', 'r')
+config_contents = config.read().split("\n")
+for line in config_contents:
+    line = line.split("=")
+    if line[0].strip() == "SQL_HOST": # IP Address for SQL.
+        SQL_HOST = line[1].strip()
+    elif line[0].strip() == "SQL_USER": # Username for SQL.
+        SQL_USER = line[1].strip()
+    elif line[0].strip() == "SQL_PASS": # Password for SQL.
+        SQL_PASS = line[1].strip()
+    elif line[0].strip() == "SQL_DB": # DB name for SQL.
+        SQL_DB = line[1].strip()
+    elif line[0].strip() == "WEBHOOK": # Webhook for logging.
+        WEBHOOK = line[1].strip()
+    else: # Config value is unknown. continue iterating anyways.
+        continue
 
 # Redis
 r = redis.Redis(host='localhost', port=6379, db=0)
@@ -25,10 +42,10 @@ r = redis.Redis(host='localhost', port=6379, db=0)
 # MySQL
 try:
     cnx = mysql.connector.connect(
-        user       = config['mysql']['user'],
-        password   = config['mysql']['passwd'],
-        host       = config['mysql']['host'],
-        database   = config['mysql']['db'],
+        user       = SQL_USER,
+        password   = SQL_PASS,
+        host       = SQL_HOST,
+        database   = SQL_DB,
         autocommit = True)
 except mysql.connector.Error as err:
     if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -141,4 +158,11 @@ if __name__ == "__main__":
     if updateTotalScores(): print(EMPT)
     if removeExpiredDonorTags(): print(EMPT)
     if addSupporterBadges(): print(EMPT)
-    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {round((time.time() - full_time_start), 2)} seconds.{ENDC}")
+
+    full_execution_time = f"{round((time.time() - full_time_start), 2)} seconds."
+    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
+
+    # Post execution success to discord.
+    requests.post(WEBHOOK, json={
+        "content": "Successfully ran Akatsuki-cron-py.\nExecution time: " + full_execution_time
+    })
