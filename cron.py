@@ -43,7 +43,6 @@ else:
 
 def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f"{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}")
-
     start_time_ranks = time.time()
 
     tables = ["rx", "users"]
