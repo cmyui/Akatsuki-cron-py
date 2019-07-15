@@ -5,7 +5,7 @@ import time
 import configparser
 
 # Akatsuki-cron-py version number.
-VERSION = 1.16
+VERSION = 1.17
 
 # Console colours
 CYAN		= '\033[96m'
@@ -13,7 +13,7 @@ MAGENTA     = '\033[95m'
 GREEN 		= '\033[92m'
 RED 		= '\033[91m'
 ENDC 		= '\033[0m'
-
+EMPT        = ''
 # Configuration.
 config = configparser.ConfigParser()
 config.sections()
@@ -69,7 +69,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
                     r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}:{country}", int(userID), float(pp))
 
     print(f"{GREEN}-> Successfully completed rank calculations.\n{MAGENTA}Time: {round((time.time() - start_time_ranks), 2)} seconds.{ENDC}")
-    return
+    return True
 
 
 def updateTotalScores(): # Update the main page values for total scores.
@@ -85,7 +85,7 @@ def updateTotalScores(): # Update the main page values for total scores.
     r.set("ripple:submitted_scores_relax", str(round(int(SQL.fetchone()[0]) / 1000000, 2)) + "m")
 
     print(f"{GREEN}-> Successfully completed updating total score values.\n{MAGENTA}Time: {round((time.time() - start_time_totalscores), 2)} seconds.{ENDC}")
-    return
+    return True
 
 
 def removeExpiredDonorTags(): # Remove supporter tags from users who no longer have them owo.
@@ -120,7 +120,7 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     SQL.execute(f"DELETE user_badges FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < {time.time()}")
 
     print(f"{GREEN}-> Successfully cleaned {len(expired_donors)} expired donor tags and {expired_badges} expired badges.\n{MAGENTA}Time: {round((time.time() - start_time_donortags), 2)} seconds.{ENDC}")
-    return
+    return True
 
 
 def addSupporterBadges(): # This is retarded please cmyui do this properly in the future TODO fucking hell.
@@ -129,26 +129,16 @@ def addSupporterBadges(): # This is retarded please cmyui do this properly in th
 
     SQL.execute(f"UPDATE users_stats LEFT JOIN users ON users_stats.id = users.id SET users_stats.can_custom_badge = 1, users_stats.show_custom_badge = 1 WHERE users.donor_expire > {time.time()}")
     print(f"{GREEN}-> Successfully supportated.\n{MAGENTA}Time: {round((time.time() - start_time_supporterbadges), 2)} seconds.{ENDC}")
-    return
+    return True
 
 
 if __name__ == "__main__":
     print(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}")
-
-    # Begin timing the cron's runtime.
     full_time_start = time.time()
-
-    print("")
-    calculateRanks()
-
-    print("")
-    updateTotalScores()
-
-    print("")
-    removeExpiredDonorTags()
     
-    print("")
-    addSupporterBadges()
-
-    print("")
+    # lol this is cursed code right here
+    if calculateRanks(): print(EMPT)
+    if updateTotalScores(): print(EMPT)
+    if removeExpiredDonorTags(): print(EMPT)
+    if addSupporterBadges(): print(EMPT)
     print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {round((time.time() - full_time_start), 2)} seconds.{ENDC}")
