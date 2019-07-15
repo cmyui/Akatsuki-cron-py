@@ -5,7 +5,7 @@ import time
 import configparser
 
 # Akatsuki-cron-py version number.
-VERSION = 1.15
+VERSION = 1.16
 
 # Console colours
 CYAN		= '\033[96m'
@@ -44,45 +44,38 @@ else:
 def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f"{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}")
 
-    start_time = time.time()
+    start_time_ranks = time.time()
 
     tables = ["rx", "users"]
 
-    modes = { # TODO use this for range thing idk if i can just smack a dict in it
-        0: "std",
-        1: "taiko",
-        2: "ctb",
-        3: "mania"
-    }
+    gamemodes = ["std", "taiko", "ctb", "mania"]
 
     for table in tables:
         print(f"Calculating {'Relax' if table == 'rx' else 'Vanilla'}.")
-        for gamemode in range(0, 4):
-            print(f"Mode: {modes.get(gamemode)}")
-            sql_prepare = "SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats ORDER BY pp_{gm}".format(t=table, gm=modes.get(gamemode))
+        for gamemode in gamemodes:
+            print(f"Mode: {gamemode}")
 
-            SQL.execute(sql_prepare)
-            query = SQL.fetchall()
+            SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats ORDER BY pp_{gm}".format(t=table, gm=gamemode))
+            resp = SQL.fetchall()
 
-            for do in query:
-                userID  = do[0]
-                pp      = do[1]
-                country = do[2].lower()
+            for column in resp:
+                userID  = column[0]
+                pp      = column[1]
+                country = column[2].lower()
 
-                if country != "xx" and country != "":
+                r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}", int(userID), float(pp))
+
+                if country and country != "xx":
                     r.zincrby("hanayo:country_list", country, 1)
+                    r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}:{country}", int(userID), float(pp))
 
-                r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{modes.get(gamemode)}", int(userID), float(pp))
-
-                if country != "xx" and country != "":
-                    r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{modes.get(gamemode)}:{country}", int(userID), float(pp))
-
-    print(f"{GREEN}-> Successfully completed rank calculations.{ENDC}")
+    print(f"{GREEN}-> Successfully completed rank calculations.\n{MAGENTA}Time: {round((time.time() - start_time_ranks), 2)} seconds.{ENDC}")
     return
 
 
 def updateTotalScores(): # Update the main page values for total scores.
     print(f"{CYAN}-> Updating total score values.{ENDC}")
+    start_time_totalscores = time.time()
 
     # Vanilla.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM users_stats WHERE 1")
@@ -92,12 +85,14 @@ def updateTotalScores(): # Update the main page values for total scores.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM rx_stats WHERE 1")
     r.set("ripple:submitted_scores_relax", str(round(int(SQL.fetchone()[0]) / 1000000, 2)) + "m")
 
-    print(f"{GREEN}-> Successfully completed updating total score values.{ENDC}")
+    print(f"{GREEN}-> Successfully completed updating total score values.\n{MAGENTA}Time: {round((time.time() - start_time_totalscores), 2)} seconds.{ENDC}")
     return
 
 
 def removeExpiredDonorTags(): # Remove supporter tags from users who no longer have them owo.
     print(f"{CYAN}-> Cleaning expired donation perks and badges.{ENDC}")
+    start_time_donortags = time.time()
+
     SQL.execute(f"SELECT id, username, privileges FROM users WHERE privileges & 4 AND donor_expire < {time.time()}")
     expired_donors = SQL.fetchall()
 
@@ -125,20 +120,24 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     # Wipe expired badges.
     SQL.execute(f"DELETE user_badges FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < {time.time()}")
 
-    print(f"{GREEN}-> Successfully cleaned {len(expired_donors)} expired donor tags and {expired_badges} expired badges.{ENDC}")
+    print(f"{GREEN}-> Successfully cleaned {len(expired_donors)} expired donor tags and {expired_badges} expired badges.\n{MAGENTA}Time: {round((time.time() - start_time_donortags), 2)} seconds.{ENDC}")
     return
+
 
 def addSupporterBadges(): # This is retarded please cmyui do this properly in the future TODO fucking hell.
     print(f"{CYAN}-> Adding supportation badges.{ENDC}")
+    start_time_supporterbadges = time.time()
+
     SQL.execute(f"UPDATE users_stats LEFT JOIN users ON users_stats.id = users.id SET users_stats.can_custom_badge = 1, users_stats.show_custom_badge = 1 WHERE users.donor_expire > {time.time()}")
-    print(f"{GREEN}-> Successfully supportated.{ENDC}")
+    print(f"{GREEN}-> Successfully supportated.\n{MAGENTA}Time: {round((time.time() - start_time_supporterbadges), 2)} seconds.{ENDC}")
     return
+
 
 if __name__ == "__main__":
     print(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}")
 
     # Begin timing the cron's runtime.
-    start_time = time.time()
+    full_time_start = time.time()
 
     print("")
     calculateRanks()
@@ -153,4 +152,4 @@ if __name__ == "__main__":
     addSupporterBadges()
 
     print("")
-    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {round((time.time() - start_time), 2)} seconds.{ENDC}")
+    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {round((time.time() - full_time_start), 2)} seconds.{ENDC}")
