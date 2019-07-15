@@ -164,5 +164,7 @@ if __name__ == "__main__":
 
     # Post execution success to discord.
     requests.post(WEBHOOK, json={
-        "content": "Successfully ran Akatsuki-cron-py.\nExecution time: " + full_execution_time
+        "content": "Successfully ran Akatsuki-cron-py.\nExecution time: " + full_execution_time,
+        "username": "Akatsuki cron",
+        "avatar_url": "https://toh.ru/uploads/94Gl9eJXqkgn.jpg"
     })
