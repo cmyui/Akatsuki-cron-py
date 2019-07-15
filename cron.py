@@ -16,7 +16,7 @@ ENDC 		= '\033[0m'
 EMPT        = ''
 
 # Initalize values as None for now.
-SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, WEBHOOK = [None] * 5
+SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, WEBHOOK, WEBHOOK_GENERAL = [None] * 6
 
 # Config.
 config = open('config.ini', 'r')
@@ -33,6 +33,8 @@ for line in config_contents:
         SQL_DB = line[1].strip()
     elif line[0].strip() == "WEBHOOK": # Webhook for logging.
         WEBHOOK = line[1].strip()
+    elif line[0].strip() == "WEBHOOK_GENERAL": # Webhook for logging.
+        WEBHOOK_GENERAL = line[1].strip()
     else: # Config value is unknown. continue iterating anyways.
         continue
 
@@ -166,5 +168,11 @@ if __name__ == "__main__":
     requests.post(WEBHOOK, json={
         "content": f"Successfully ran Akatsuki-cron-py.\nExecution time: `{full_execution_time}`",
         "username": "Akatsuki cron",
+        "avatar_url": "https://toh.ru/uploads/94Gl9eJXqkgn.jpg"
+    })
+
+    requests.post(WEBHOOK_GENERAL, json={
+        "content": f"The site leaderboard rankings have been updated.",
+        "username": "Akatsuki",
         "avatar_url": "https://toh.ru/uploads/94Gl9eJXqkgn.jpg"
     })
