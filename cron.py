@@ -34,8 +34,6 @@ for line in config_contents:
         SQL_DB = line[1].strip()
     elif line[0].strip() == "WEBHOOK": # Webhook for logging.
         WEBHOOK = line[1].strip()
-    elif line[0].strip() == "WEBHOOK_GENERAL": # Webhook for logging.
-        WEBHOOK_GENERAL = line[1].strip()
     else: # Config value is unknown. continue iterating anyways.
         continue
 
@@ -167,13 +165,7 @@ if __name__ == "__main__":
 
     # Post execution success to discord.
     requests.post(WEBHOOK, json={
-        "content": f"Successfully ran Akatsuki-cron-py.\nExecution time: `{full_execution_time}`",
-        "username": "Akatsuki cron",
-        "avatar_url": "https://toh.ru/uploads/94Gl9eJXqkgn.jpg"
-    })
-
-    requests.post(WEBHOOK_GENERAL, json={
-        "content": f"The site leaderboard rankings have been updated.",
+        "content": f"Akatsuki's cron has run.\nUpdated:\n- `Site leaderboards`\n- `Donation badges`\n- `Expired donation perks/badges`\n- `Total score amounts`\nExecution time: {full_execution_time}.",
         "username": "Akatsuki",
         "avatar_url": "https://toh.ru/uploads/94Gl9eJXqkgn.jpg"
     })
