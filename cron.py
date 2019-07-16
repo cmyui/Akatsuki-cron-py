@@ -3,6 +3,7 @@ import mysql.connector
 from mysql.connector import errorcode
 import time
 import requests
+import os
 
 # Akatsuki-cron-py version number.
 VERSION = 1.18
@@ -19,7 +20,7 @@ EMPT        = ''
 SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, WEBHOOK, WEBHOOK_GENERAL = [None] * 6
 
 # Config.
-config = open('config.ini', 'r')
+config = open(os.path.dirname(os.path.realpath(__file__)) + '/config.ini', 'r')
 config_contents = config.read().split("\n")
 for line in config_contents:
     line = line.split("=")
