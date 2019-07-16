@@ -14,7 +14,6 @@ MAGENTA     = '\033[95m'
 GREEN 		= '\033[92m'
 RED 		= '\033[91m'
 ENDC 		= '\033[0m'
-EMPT        = ''
 
 # Initalize values as None for now.
 SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, WEBHOOK, WEBHOOK_GENERAL = [None] * 6
@@ -119,15 +118,15 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
         print(f"Removing {user[1]}'{'s' if user[1].endswith('s') else ''} {'Premium' if donor_type else 'Supporter'}.")
 
         if donor_type:
-           SQL.execute(f"UPDATE users SET privileges = privileges - 8388612 WHERE id = {int(user[0])}")
+           SQL.execute("UPDATE users SET privileges = privileges - 8388612 WHERE id = " + user[0])
         else:
-           SQL.execute(f"UPDATE users SET privileges = privileges - 4 WHERE id = {int(user[0])}")
+           SQL.execute("UPDATE users SET privileges = privileges - 4 WHERE id = " + user[0])
 
-        SQL.execute(f"SELECT id FROM user_badges WHERE badge IN (59, 36) AND user = {int(user[0])}")
+        SQL.execute("SELECT id FROM user_badges WHERE badge IN (59, 36) AND user = " + user[0])
         badges = SQL.fetchall()
 
         for badge in badges:
-            SQL.execute(f"DELETE FROM user_badges WHERE id = {badge[0]}")
+            SQL.execute("DELETE FROM user_badges WHERE id = " + badge[0])
 
     # Grab a count of the expired badges to print.
     # TODO: make this use SQL.rowcount or w/e its called. I know it exists.
@@ -155,10 +154,10 @@ if __name__ == "__main__":
     full_time_start = time.time()
 
     # lol this is cursed code right here
-    if calculateRanks(): print(EMPT)
-    if updateTotalScores(): print(EMPT)
-    if removeExpiredDonorTags(): print(EMPT)
-    if addSupporterBadges(): print(EMPT)
+    if calculateRanks(): print()
+    if updateTotalScores(): print()
+    if removeExpiredDonorTags(): print()
+    if addSupporterBadges(): print()
 
     full_execution_time = f"{round((time.time() - full_time_start), 2)} seconds."
     print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
