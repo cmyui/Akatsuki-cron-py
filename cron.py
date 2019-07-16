@@ -164,7 +164,7 @@ if __name__ == "__main__":
     print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
 
     # Post execution success to discord.
-    requests.post(WEBHOOK, json={
+    requests.post(WEBHOOK, timeout=5, json={
         "color": 5516472, # "Akatsuki purple"
         "username": "Akatsuki",
         "avatar_url": "https://nanahira.life/uploads/94Gl9eJXqkgn.jpg",
