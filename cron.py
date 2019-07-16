@@ -153,7 +153,7 @@ def addSupporterBadges(): # This is retarded please cmyui do this properly in th
 if __name__ == "__main__":
     print(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}")
     full_time_start = time.time()
-    
+
     # lol this is cursed code right here
     if calculateRanks(): print(EMPT)
     if updateTotalScores(): print(EMPT)
@@ -165,7 +165,22 @@ if __name__ == "__main__":
 
     # Post execution success to discord.
     requests.post(WEBHOOK, json={
-        "content": f"Akatsuki's cron has run.\nUpdated:\n- `Site leaderboards`\n- `Donation badges`\n- `Expired donation perks/badges`\n- `Total score amounts`\nExecution time: {full_execution_time}.",
+        "color": 5516472, # "Akatsuki purple"
         "username": "Akatsuki",
-        "avatar_url": "https://toh.ru/uploads/94Gl9eJXqkgn.jpg"
+        "avatar_url": "https://nanahira.life/uploads/94Gl9eJXqkgn.jpg",
+        "url": "https://github.com/cmyui/Akatsuki-cron-py",
+        "embeds": [{
+            "title": "Akatsuki's cron has executed successfully.",
+            "description": f"Hanayo's leaderboards have been updated using ruri's latest values, to ensure utmost accuracy.\n\n**Execution time: {full_execution_time}**",
+            "thumbnail": {
+                "url": "https://nanahira.life/uploads/BgPvoXbV05Ut.png"
+            },
+            "image": {
+                "url": "https://cdn.discordapp.com/attachments/353215956022984706/600686977225981961/Untitled-1.png"
+            },
+            "footer": {
+                "text": f"Akatsuki's cron v{VERSION} | Open source on Github.",
+                "icon_url": "https://nanahira.life/uploads/7eNFPw52mR2r.png" # TODO: center image
+            }
+        }]
     })
