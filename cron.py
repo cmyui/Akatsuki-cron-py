@@ -109,7 +109,7 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     print(f"{CYAN}-> Cleaning expired donation perks and badges.{ENDC}")
     start_time_donortags = time.time()
 
-    SQL.execute("SELECT id, username, privileges FROM users WHERE privileges & 4 AND donor_expire < " + int(time.time()))
+    SQL.execute("SELECT id, username, privileges FROM users WHERE privileges & 4 AND donor_expire < %s", [int(time.time())])
     expired_donors = SQL.fetchall()
 
     for user in expired_donors:
@@ -118,23 +118,23 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
         print(f"Removing {user[1]}'{'s' if user[1].endswith('s') else ''} {'Premium' if donor_type else 'Supporter'}.")
 
         if donor_type:
-           SQL.execute("UPDATE users SET privileges = privileges - 8388612 WHERE id = " + user[0])
+           SQL.execute("UPDATE users SET privileges = privileges - 8388612 WHERE id = %s", [user[0]])
         else:
-           SQL.execute("UPDATE users SET privileges = privileges - 4 WHERE id = " + user[0])
+           SQL.execute("UPDATE users SET privileges = privileges - 4 WHERE id = %s", [user[0]])
 
-        SQL.execute("SELECT id FROM user_badges WHERE badge IN (59, 36) AND user = " + user[0])
+        SQL.execute("SELECT id FROM user_badges WHERE badge IN (59, 36) AND user = %s", [user[0]])
         badges = SQL.fetchall()
 
         for badge in badges:
-            SQL.execute("DELETE FROM user_badges WHERE id = " + badge[0])
+            SQL.execute("DELETE FROM user_badges WHERE id = %s", [badge[0]])
 
     # Grab a count of the expired badges to print.
     # TODO: make this use SQL.rowcount or w/e its called. I know it exists.
-    SQL.execute("SELECT COUNT(*) FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < " + int(time.time()))
+    SQL.execute("SELECT COUNT(*) FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < %s", [int(time.time())])
     expired_badges = SQL.fetchone()[0]
 
     # Wipe expired badges.
-    SQL.execute("DELETE user_badges FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < " + int(time.time()))
+    SQL.execute("DELETE user_badges FROM user_badges LEFT JOIN users ON user_badges.user = users.id WHERE user_badges.badge in (59, 36) AND users.donor_expire < %s", [int(time.time())])
 
     print(f"{GREEN}-> Successfully cleaned {len(expired_donors)} expired donor tags and {expired_badges} expired badges.\n{MAGENTA}Time: {round((time.time() - start_time_donortags), 2)} seconds.{ENDC}")
     return True
@@ -144,7 +144,7 @@ def addSupporterBadges(): # This is retarded please cmyui do this properly in th
     print(f"{CYAN}-> Adding supportation badges.{ENDC}")
     start_time_supporterbadges = time.time()
 
-    SQL.execute("UPDATE users_stats LEFT JOIN users ON users_stats.id = users.id SET users_stats.can_custom_badge = 1, users_stats.show_custom_badge = 1 WHERE users.donor_expire > " + int(time.time()))
+    SQL.execute("UPDATE users_stats LEFT JOIN users ON users_stats.id = users.id SET users_stats.can_custom_badge = 1, users_stats.show_custom_badge = 1 WHERE users.donor_expire > %s", [int(time.time())])
     print(f"{GREEN}-> Successfully supportated.\n{MAGENTA}Time: {round((time.time() - start_time_supporterbadges), 2)} seconds.{ENDC}")
     return True
 
