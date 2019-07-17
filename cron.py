@@ -72,12 +72,11 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
             print(f"Mode: {gamemode}")
 
             SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats WHERE {t}_stats.pp_{gm} > 0 ORDER BY pp_{gm} DESC".format(t=table, gm=gamemode))
-            resp = SQL.fetchall()
 
-            for column in resp:
-                userID  = column[0]
-                pp      = column[1]
-                country = column[2].lower()
+            for row in SQL.fetchall():
+                userID  = row[0]
+                pp      = row[1]
+                country = row[2].lower()
 
                 r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}", int(userID), float(pp))
 
