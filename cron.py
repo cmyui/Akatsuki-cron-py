@@ -175,7 +175,7 @@ if __name__ == "__main__":
                 "url": "https://nanahira.life/uploads/BgPvoXbV05Ut.png"
             },
             "image": {
-                "url": "https://cdn.discordapp.com/attachments/353215956022984706/600686977225981961/Untitled-1.png"
+                "url": "https://cdn.discordapp.com/attachments/592490140497084436/600930852293312512/Untitled-2.png"
             },
             "footer": {
                 "text": f"Akatsuki's cron v{VERSION} | Open source on Github.",
