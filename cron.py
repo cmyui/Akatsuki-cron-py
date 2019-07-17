@@ -75,15 +75,15 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
             resp = SQL.fetchall()
 
             for column in resp:
-                userID  = column[0]
-                pp      = column[1]
-                country = column[2].lower()
+                #userID  = column[0]
+                #pp      = column[1]
+                #country = column[2].lower()
 
-                r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}", int(userID), float(pp))
+                r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}", int(column[0]), float(column[1]))
 
-                if country and country != "xx":
-                    r.zincrby("hanayo:country_list", country, 1)
-                    r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}:{country}", int(userID), float(pp))
+                if column[2].lower() and column[2].lower() != "xx":
+                    r.zincrby("hanayo:country_list", column[2].lower(), 1)
+                    r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}:{column[2].lower()}", int(column[0]), float(column[1]))
 
     print(f"{GREEN}-> Successfully completed rank calculations.\n{MAGENTA}Time: {round((time.time() - start_time_ranks), 2)} seconds.{ENDC}")
     return True
