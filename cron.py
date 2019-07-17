@@ -6,7 +6,7 @@ import requests
 import os
 
 # Akatsuki-cron-py version number.
-VERSION = 1.19
+VERSION = 1.20
 
 # Console colours
 CYAN		= '\033[96m'
@@ -71,7 +71,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
         for gamemode in gamemodes:
             print(f"Mode: {gamemode}")
 
-            SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats WHERE {t}_stats.pp_{gm} > 0 ORDER BY pp_{gm} DESC".format(t=table, gm=gamemode))
+            SQL.execute("SELECT %(table)s_stats.id, %(table)s_stats.pp_%(gamemode)s, %(table)_stats.country FROM %(table)s_stats WHERE %(table)s_stats.pp_%(gamemode)s > 0 ORDER BY pp_%(gamemode)s DESC", {"table": table, "gamemode": gamemode})
 
             for row in SQL.fetchall():
                 userID  = row[0]
