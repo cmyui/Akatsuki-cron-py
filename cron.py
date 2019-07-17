@@ -159,7 +159,8 @@ if __name__ == "__main__":
     if removeExpiredDonorTags(): print()
     if addSupporterBadges(): print()
 
-    full_execution_time = f"{round((time.time() - full_time_start), 2)} seconds."
+    full_execution_time = "%.2f seconds." % round((time.time() - full_time_start), 2)
+
     print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
 
     # Post execution success to discord.
