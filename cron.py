@@ -163,23 +163,24 @@ if __name__ == "__main__":
     print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
 
     # Post execution success to discord.
-    requests.post(WEBHOOK, timeout=5, json={
-        "color": 5516472, # "Akatsuki purple"
-        "username": "Akatsuki",
-        "avatar_url": "https://nanahira.life/uploads/94Gl9eJXqkgn.jpg",
-        "url": "https://github.com/cmyui/Akatsuki-cron-py",
-        "embeds": [{
-            "title": "Akatsuki's cron has executed successfully.",
-            "description": f"Hanayo's leaderboards have been updated using ruri's latest values, to ensure utmost accuracy.\n\n**Execution time: {full_execution_time}**",
-            "thumbnail": {
-                "url": "https://nanahira.life/uploads/BgPvoXbV05Ut.png"
-            },
-            "image": {
-                "url": "https://cdn.discordapp.com/attachments/592490140497084436/600930852293312512/Untitled-2.png"
-            },
-            "footer": {
-                "text": f"Akatsuki's cron v{VERSION} | Open source on Github.",
-                "icon_url": "https://nanahira.life/uploads/7eNFPw52mR2r.png" # TODO: center image
-            }
-        }]
-    })
+    if not WEBHOOK:
+        requests.post(WEBHOOK, timeout=5, json={
+            "color": 5516472, # "Akatsuki purple"
+            "username": "Akatsuki",
+            "avatar_url": "https://nanahira.life/uploads/94Gl9eJXqkgn.jpg",
+            "url": "https://github.com/cmyui/Akatsuki-cron-py",
+            "embeds": [{
+                "title": "Akatsuki's cron has executed successfully.",
+                "description": f"Hanayo's leaderboards have been updated using ruri's latest values, to ensure utmost accuracy.\n\n**Execution time: {full_execution_time}**",
+                "thumbnail": {
+                    "url": "https://nanahira.life/uploads/BgPvoXbV05Ut.png"
+                },
+                "image": {
+                    "url": "https://cdn.discordapp.com/attachments/592490140497084436/600930852293312512/Untitled-2.png"
+                },
+                "footer": {
+                    "text": f"Akatsuki's cron v{VERSION} | Open source on Github.",
+                    "icon_url": "https://nanahira.life/uploads/7eNFPw52mR2r.png" # TODO: center image
+                }
+            }]
+        })
