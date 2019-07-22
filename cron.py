@@ -122,9 +122,8 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
            SQL.execute("UPDATE users SET privileges = privileges - 4 WHERE id = %s", [user[0]])
 
         SQL.execute("SELECT id FROM user_badges WHERE badge IN (59, 36) AND user = %s", [user[0]])
-        badges = SQL.fetchall()
 
-        for badge in badges:
+        for badge in SQL.fetchall():
             SQL.execute("DELETE FROM user_badges WHERE id = %s", [badge[0]])
 
     # Grab a count of the expired badges to print.
@@ -163,7 +162,7 @@ if __name__ == "__main__":
     print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
 
     # Post execution success to discord.
-    if not WEBHOOK:
+    if WEBHOOK:
         requests.post(WEBHOOK, timeout=5, json={
             "color": 5516472, # "Akatsuki purple"
             "username": "Akatsuki",
