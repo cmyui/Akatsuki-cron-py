@@ -21,10 +21,10 @@ ENDC 		= '\033[0m'
 SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, WEBHOOK, WEBHOOK_GENERAL = [None] * 6
 
 # Config.
-config = open(os.path.dirname(os.path.realpath(__file__)) + '/config.ini', 'r')
-config_contents = config.read().split("\n")
+config = open(os.path.dirname(os.path.realpath(__file__)) + "/config.ini", 'r')
+config_contents = config.read().split('\n')
 for line in config_contents:
-    line = line.split("=")
+    line = line.split('=')
     if line[0].strip() == "SQL_HOST": # IP Address for SQL.
         SQL_HOST = line[1].strip()
     elif line[0].strip() == "SQL_USER": # Username for SQL.
@@ -39,7 +39,7 @@ for line in config_contents:
         continue
 
 # Redis
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host="localhost", port=6379, db=0)
 
 # MySQL
 try:
@@ -153,10 +153,10 @@ def calculateScorePlaycount():
     SQL.execute("SELECT id FROM users WHERE privileges & 1 ORDER BY id ASC")
     users = SQL.fetchall()
 
-    for akatsuki_mode in [["users", ""], ["rx", "_relax"]]:
+    for akatsuki_mode in [["users", ''], ["rx", "_relax"]]:
         print(f"Calculating {'Relax' if akatsuki_mode[1] else 'Vanilla'}.")
 
-        for game_mode in [["std", "0"], ["taiko", "1"], ["ctb", "2"], ["mania", "3"]]:
+        for game_mode in [["std", '0'], ["taiko", '1'], ["ctb", '2'], ["mania", '3']]:
             print(f"Mode: {game_mode[0]}")
 
             for user in users:
