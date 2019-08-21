@@ -4,6 +4,7 @@ from mysql.connector import errorcode
 import time
 import requests
 import os
+import sys
 
 # Akatsuki-cron-py version number.
 VERSION = 1.19
@@ -147,15 +148,67 @@ def addSupporterBadges(): # This is retarded please cmyui do this properly in th
     return True
 
 
+def calculateScorePlaycount():
+    print(f"{CYAN}-> Calculating score (total, ranked) and playcount for all users in all gamemodes.{ENDC}")
+    start_time_ranks = time.time()
+
+    # Get all users in the database.
+    SQL.execute("SELECT id FROM users WHERE privileges & 1 ORDER BY id ASC")
+    users = SQL.fetchall()
+
+    for akatsuki_mode in [["users", ""], ["rx", "_relax"]]:
+        print("Processing akatsuki_mode: " + akatsuki_mode[0])
+
+        for game_mode in [["std", "0"], ["taiko", "1"], ["ctb", "2"], ["mania", "3"]]:
+            print(f"Gamemode: {game_mode[0]}")
+
+            for user in users:
+                total_score, ranked_score, playcount = [0] * 3
+
+                # Get every score the user has ever submitted.
+                # .format sql queries hahahahah fuck you i don't care
+                SQL.execute("""SELECT scores{akatsuki_mode}.score, scores{akatsuki_mode}.completed, beatmaps.ranked
+                               FROM scores{akatsuki_mode}
+                               LEFT JOIN beatmaps ON scores{akatsuki_mode}.beatmap_md5 = beatmaps.beatmap_md5
+                               WHERE
+                                scores{akatsuki_mode}.userid = %s AND
+                                scores{akatsuki_mode}.play_mode = {game_mode}
+                               """.format(akatsuki_mode=akatsuki_mode[1], game_mode=game_mode[1]), [user[0]])
+
+                # Iterate through every score, appending ranked and total score, along with playcount.
+                for score, completed, ranked in SQL.fetchall():
+                    if score < 0: print(f"Found negative score: {score} - uid: {user[0]}"); continue # Ignore negative scores.
+
+                    if completed == 0: playcount += 1; continue
+                    if completed == 3 and ranked == 2: ranked_score += score
+                    total_score += score
+                    playcount += 1
+
+                # Score and playcount calculations complete, insert into DB.
+                SQL.execute("""UPDATE {akatsuki_mode}_stats
+                               SET
+                                total_score_{game_mode} = %s,
+                                ranked_score_{game_mode} = %s,
+                                playcount_{game_mode} = %s
+                               WHERE
+                                id = %s
+                               """.format(akatsuki_mode=akatsuki_mode[0], game_mode=game_mode[0]), [total_score, ranked_score, playcount, user[0]])
+
+    print(f"{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {round((time.time() - start_time_ranks), 2)} seconds.{ENDC}")
+    return True
+
+
 if __name__ == "__main__":
     print(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}")
+    intensive = len(sys.argv) > 1 and any(sys.argv[1].startswith(x) for x in ['t', 'y', '1'])
     full_time_start = time.time()
-
     # lol this is cursed code right here
     if calculateRanks(): print()
     if updateTotalScores(): print()
     if removeExpiredDonorTags(): print()
     if addSupporterBadges(): print()
+    if intensive:
+        if calculateScorePlaycount(): print()
 
     full_execution_time = "%.2f seconds." % round((time.time() - full_time_start), 2)
 
