@@ -7,7 +7,7 @@ import os
 import sys
 
 # Akatsuki-cron-py version number.
-VERSION = 1.19
+VERSION = 1.25
 
 # Console colours
 CYAN		= '\033[96m'
