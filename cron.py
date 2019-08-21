@@ -12,6 +12,7 @@ VERSION = 1.19
 # Console colours
 CYAN		= '\033[96m'
 MAGENTA     = '\033[95m'
+YELLOW 		= '\033[93m'
 GREEN 		= '\033[92m'
 RED 		= '\033[91m'
 ENDC 		= '\033[0m'
@@ -63,13 +64,9 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f"{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}")
     start_time_ranks = time.time()
 
-    tables = ["rx", "users"]
-
-    gamemodes = ["std", "taiko", "ctb", "mania"]
-
-    for table in tables:
+    for table in ["rx", "users"]:
         print(f"Calculating {'Relax' if table == 'rx' else 'Vanilla'}.")
-        for gamemode in gamemodes:
+        for gamemode in ["std", "taiko", "ctb", "mania"]:
             print(f"Mode: {gamemode}")
 
             SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats LEFT JOIN users ON users.id = {t}_stats.id WHERE {t}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC".format(t=table, gm=gamemode))
@@ -157,10 +154,10 @@ def calculateScorePlaycount():
     users = SQL.fetchall()
 
     for akatsuki_mode in [["users", ""], ["rx", "_relax"]]:
-        print("Processing akatsuki_mode: " + akatsuki_mode[0])
+        print(f"Calculating {'Relax' if akatsuki_mode[1] else 'Vanilla'}.")
 
         for game_mode in [["std", "0"], ["taiko", "1"], ["ctb", "2"], ["mania", "3"]]:
-            print(f"Gamemode: {game_mode[0]}")
+            print(f"Mode: {game_mode[0]}")
 
             for user in users:
                 total_score, ranked_score, playcount = [0] * 3
@@ -177,7 +174,7 @@ def calculateScorePlaycount():
 
                 # Iterate through every score, appending ranked and total score, along with playcount.
                 for score, completed, ranked in SQL.fetchall():
-                    if score < 0: print(f"Found negative score: {score} - uid: {user[0]}"); continue # Ignore negative scores.
+                    if score < 0: print(f"{YELLOW}Negative score: {score} - UID: {user[0]}{ENDC}"); continue # Ignore negative scores.
 
                     if completed == 0: playcount += 1; continue
                     if completed == 3 and ranked == 2: ranked_score += score
