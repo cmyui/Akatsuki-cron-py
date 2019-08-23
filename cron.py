@@ -17,31 +17,24 @@ GREEN 		= '\033[92m'
 RED 		= '\033[91m'
 ENDC 		= '\033[0m'
 
-# Initalize values as None for now.
-SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, WEBHOOK, WEBHOOK_GENERAL = [None] * 6
+SQL_HOST, SQL_USER, SQL_PASS, SQL_DB = [None] * 4
+with open(os.path.dirname(os.path.realpath(__file__)) + "/config.ini", 'r') as f:
+    conf_data = f.read().splitlines()
 
-# Config.
-config = open(os.path.dirname(os.path.realpath(__file__)) + "/config.ini", 'r')
-config_contents = config.read().split('\n')
-for line in config_contents:
-    line = line.split('=')
-    if line[0].strip() == "SQL_HOST": # IP Address for SQL.
-        SQL_HOST = line[1].strip()
-    elif line[0].strip() == "SQL_USER": # Username for SQL.
-        SQL_USER = line[1].strip()
-    elif line[0].strip() == "SQL_PASS": # Password for SQL.
-        SQL_PASS = line[1].strip()
-    elif line[0].strip() == "SQL_DB": # DB name for SQL.
-        SQL_DB = line[1].strip()
-    elif line[0].strip() == "WEBHOOK": # Webhook for logging.
-        WEBHOOK = line[1].strip()
-    else: # Config value is unknown. continue iterating anyways.
-        continue
+for _line in conf_data:
+    if not _line: continue
+    line = _line.split('=')
+    key = line[0].rstrip()
+    val = line[1].lstrip()
 
-# Redis
-r = redis.Redis(host="localhost", port=6379, db=0)
+    if key == "SQL_HOST": SQL_HOST = val # IP Address for SQL.
+    elif key == "SQL_USER": SQL_USER = val # Username for SQL.
+    elif key == "SQL_PASS": SQL_PASS = val # Password for SQL.
+    elif key == "SQL_DB": SQL_DB = val # DB name for SQL.
 
-# MySQL
+if any(not i for i in [SQL_HOST, SQL_USER, SQL_PASS, SQL_DB]):
+    raise Exception("Not all required configuration values could be found (SQL_HOST, SQL_USER, SQL_PASS, SQL_DB).")
+
 try:
     cnx = mysql.connector.connect(
         user       = SQL_USER,
@@ -51,14 +44,18 @@ try:
         autocommit = True)
 except mysql.connector.Error as err:
     if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-        print(f"{RED}Something is wrong with your username or password.{ENDC}")
+        raise Exception("Something is wrong with your username or password.")
     elif err.errno == errorcode.ER_BAD_DB_ERROR:
-        print(f"{RED}Database does not exist.{ENDC}")
+        raise Exception("Database does not exist.")
     else:
-        print(f"{RED}{err}{ENDC}")
+        raise Exception(err)
 else:
     SQL = cnx.cursor()
 
+if not SQL: raise Exception("Could not connect to SQL.")
+
+# Redis
+r = redis.Redis(host="localhost", port=6379, db=0)
 
 def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f"{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}")
@@ -210,26 +207,3 @@ if __name__ == "__main__":
     full_execution_time = "%.2f seconds." % round((time.time() - full_time_start), 2)
 
     print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
-
-    # Post execution success to discord.
-    if WEBHOOK:
-        requests.post(WEBHOOK, timeout=5, json={
-            "color": 5516472, # "Akatsuki purple"
-            "username": "Akatsuki",
-            "avatar_url": "https://nanahira.life/uploads/94Gl9eJXqkgn.jpg",
-            "url": "https://github.com/cmyui/Akatsuki-cron-py",
-            "embeds": [{
-                "title": "Akatsuki's cron has executed successfully.",
-                "description": f"Hanayo's leaderboards have been updated using ruri's latest values, to ensure utmost accuracy.\n\n**Execution time: {full_execution_time}**",
-                "thumbnail": {
-                    "url": "https://nanahira.life/uploads/BgPvoXbV05Ut.png"
-                },
-                "image": {
-                    "url": "https://cdn.discordapp.com/attachments/592490140497084436/600930852293312512/Untitled-2.png"
-                },
-                "footer": {
-                    "text": f"Akatsuki's cron v{VERSION} | Open source on Github.",
-                    "icon_url": "https://nanahira.life/uploads/7eNFPw52mR2r.png" # TODO: center image
-                }
-            }]
-        })
