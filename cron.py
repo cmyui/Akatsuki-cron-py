@@ -7,7 +7,7 @@ import os
 import sys
 
 # Akatsuki-cron-py version number.
-VERSION = 1.25
+VERSION = 1.26
 
 # Console colours
 CYAN		= '\033[96m'
@@ -89,11 +89,11 @@ def updateTotalScores(): # Update the main page values for total scores.
 
     # Vanilla.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM users_stats WHERE 1")
-    r.set("ripple:submitted_scores", str(round(int(SQL.fetchone()[0]) / 1000000, 2)) + "m")
+    r.set("ripple:submitted_scores", '%.2f' % (SQL.fetchone()[0] / 1000000) + "m")
 
     # Relax.
     SQL.execute("SELECT SUM(playcount_std) + SUM(playcount_taiko) + SUM(playcount_ctb) + SUM(playcount_mania) FROM rx_stats WHERE 1")
-    r.set("ripple:submitted_scores_relax", str(round(int(SQL.fetchone()[0]) / 1000000, 2)) + "m")
+    r.set("ripple:submitted_scores_relax", '%.2f' % (SQL.fetchone()[0] / 1000000) + "m")
 
     print(f"{GREEN}-> Successfully completed updating total score values.\n{MAGENTA}Time: {round((time.time() - start_time_totalscores), 2)} seconds.{ENDC}")
     return True
@@ -109,7 +109,7 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     for user in expired_donors:
         donor_type = user[2] & 8388608
 
-        print(f"Removing {user[1]}'{'s' if user[1].endswith('s') else ''} {'Premium' if donor_type else 'Supporter'}.")
+        print(f"Removing {user[1]}'{'s' if user[1][-1] != 's' else ''} expired {'Premium' if donor_type else 'Supporter'} tag.")
 
         if donor_type:
            SQL.execute("UPDATE users SET privileges = privileges - 8388612 WHERE id = %s", [user[0]])
@@ -134,11 +134,11 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
 
 
 def addSupporterBadges(): # This is retarded please cmyui do this properly in the future TODO fucking hell.
-    print(f"{CYAN}-> Adding supportation badges.{ENDC}")
+    print(f"{CYAN}-> Adding donation badges.{ENDC}")
     start_time_supporterbadges = time.time()
 
     SQL.execute("UPDATE users_stats LEFT JOIN users ON users_stats.id = users.id SET users_stats.can_custom_badge = 1, users_stats.show_custom_badge = 1 WHERE users.donor_expire > %s", [int(time.time())])
-    print(f"{GREEN}-> Successfully supportated.\n{MAGENTA}Time: {round((time.time() - start_time_supporterbadges), 2)} seconds.{ENDC}")
+    print(f"{GREEN}-> Donation badges added to users.\n{MAGENTA}Time: {round((time.time() - start_time_supporterbadges), 2)} seconds.{ENDC}")
     return True
 
 
@@ -173,22 +173,21 @@ def calculateScorePlaycount():
                 for score, completed, ranked in SQL.fetchall():
                     if score < 0: print(f"{YELLOW}Negative score: {score} - UID: {user[0]}{ENDC}"); continue # Ignore negative scores.
 
-                    if completed == 0: playcount += 1; continue
+                    if not completed: playcount += 1; continue
                     if completed == 3 and ranked == 2: ranked_score += score
                     total_score += score
                     playcount += 1
 
                 # Score and playcount calculations complete, insert into DB.
                 SQL.execute("""UPDATE {akatsuki_mode}_stats
-                               SET
-                                total_score_{game_mode} = %s,
-                                ranked_score_{game_mode} = %s,
-                                playcount_{game_mode} = %s
-                               WHERE
-                                id = %s
-                               """.format(akatsuki_mode=akatsuki_mode[0], game_mode=game_mode[0]), [total_score, ranked_score, playcount, user[0]])
+                               SET total_score_{game_mode} = %s, ranked_score_{game_mode} = %s, playcount_{game_mode} = %s
+                               WHERE id = %s""".format(
+                                   akatsuki_mode=akatsuki_mode[0],
+                                   game_mode=game_mode[0]
+                                ), [total_score, ranked_score, playcount, user[0]]
+                            )
 
-    print(f"{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {round((time.time() - start_time_ranks), 2)} seconds.{ENDC}")
+    print(f"{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {'%.2f' % (time.time() - start_time_ranks)} seconds.{ENDC}")
     return True
 
 
@@ -201,9 +200,6 @@ if __name__ == "__main__":
     if updateTotalScores(): print()
     if removeExpiredDonorTags(): print()
     if addSupporterBadges(): print()
-    if intensive:
-        if calculateScorePlaycount(): print()
+    if intensive and calculateScorePlaycount(): print()
 
-    full_execution_time = "%.2f seconds." % round((time.time() - full_time_start), 2)
-
-    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {full_execution_time}{ENDC}")
+    print(f"{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {'%.2f seconds.' % (time.time() - full_time_start)}{ENDC}")
