@@ -61,6 +61,8 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f"{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}")
     start_time_ranks = time.time()
 
+    r.flushall() # Flush current set (removes restricted players).
+
     for table in ["users", "rx"]:
         print(f"Calculating {'Relax' if table == 'rx' else 'Vanilla'}.")
         for gamemode in ["std", "taiko", "ctb", "mania"]:
