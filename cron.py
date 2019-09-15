@@ -63,23 +63,23 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
 
     r.flushall() # Flush current set (removes restricted players).
 
-    for table in ["users", "rx"]:
-        print(f"Calculating {'Relax' if table == 'rx' else 'Vanilla'}.")
+    for relax in range(2):
+        print(f"Calculating {'Relax' if relax else 'Vanilla'}.")
         for gamemode in ["std", "taiko", "ctb", "mania"]:
             print(f"Mode: {gamemode}")
 
-            SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats LEFT JOIN users ON users.id = {t}_stats.id WHERE {t}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC".format(t=table, gm=gamemode))
+            SQL.execute("SELECT {t}_stats.id, {t}_stats.pp_{gm}, {t}_stats.country FROM {t}_stats LEFT JOIN users ON users.id = {t}_stats.id WHERE {t}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC".format(t='rx' if relax else 'users', gm=gamemode))
 
             for row in SQL.fetchall():
                 userID  = row[0]
                 pp      = row[1]
                 country = row[2].lower()
 
-                r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}", int(userID), float(pp))
+                r.zadd(f"ripple:{'relax' if relax else 'leader'}board:{gamemode}", int(userID), float(pp))
 
-                if country and country != "xx":
+                if country != "xx":
                     r.zincrby("hanayo:country_list", country, 1)
-                    r.zadd(f"ripple:{'relax' if table == 'rx' else 'leader'}board:{gamemode}:{country}", int(userID), float(pp))
+                    r.zadd(f"ripple:{'relax' if relax else 'leader'}board:{gamemode}:{country}", int(userID), float(pp))
 
     print(f"{GREEN}-> Successfully completed rank calculations.\n{MAGENTA}Time: {round((time.time() - start_time_ranks), 2)} seconds.{ENDC}")
     return True
