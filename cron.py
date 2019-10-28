@@ -204,4 +204,4 @@ if __name__ == '__main__':
     if addSupporterBadges(): print()
     if intensive and calculateScorePlaycount(): print()
 
-    print(f'{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {time.time() - t_start:.2f}{ENDC}')
+    print(f'{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
