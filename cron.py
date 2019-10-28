@@ -91,7 +91,7 @@ def updateTotalScores(): # Update the main page values for total scores.
 
     # Vanilla.
     SQL.execute('SELECT id FROM scores ORDER BY time DESC LIMIT 1')
-    r.set('ripple:submitted_scores', f'{SQL.fetchone()[0] / 1000000:.2f}m')
+    r.set('ripple:submitted_scores', f'{(SQL.fetchone()[0] - 500000000) / 1000000:.2f}m')
 
     # Relax.
     SQL.execute('SELECT id FROM scores_relax ORDER BY time DESC LIMIT 1')
@@ -189,7 +189,7 @@ def calculateScorePlaycount():
                                 ), [total_score, ranked_score, playcount, user[0]]
                             )
 
-    print(f'{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {'%.2f' % (time.time() - t_start)} seconds.{ENDC}')
+    print(f'{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     return True
 
 
