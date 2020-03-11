@@ -68,12 +68,17 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
             print(f'Mode: {gamemode}')
 
-            SQL.execute('SELECT {rx}_stats.id, {rx}_stats.pp_{gm}, {rx}_stats.country FROM {rx}_stats LEFT JOIN users ON users.id = {rx}_stats.id WHERE {rx}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(rx='rx' if relax else 'users', gm=gamemode))
+            SQL.execute('SELECT {rx}_stats.id, {rx}_stats.pp_{gm}, {rx}_stats.country, users.latest_activity FROM {rx}_stats LEFT JOIN users ON users.id = {rx}_stats.id WHERE {rx}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(rx='rx' if relax else 'users', gm=gamemode))
 
+            currentTime = int(time.time())
             for row in SQL.fetchall():
-                userID  = int(row[0])
-                pp      = float(row[1])
-                country = row[2].lower()
+                userID       = int(row[0])
+                pp           = float(row[1])
+                country      = row[2].lower()
+                daysInactive = (currentTime - int(row[3])) / 60 / 60 / 24
+                
+                if daysInactive > 60:
+                    continue
 
                 r.zadd(f'ripple:{"relax" if relax else "leader"}board:{gamemode}', userID, pp)
 
