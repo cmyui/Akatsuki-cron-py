@@ -7,7 +7,7 @@ import os
 import sys
 
 # Akatsuki-cron-py version number.
-VERSION = 1.28
+VERSION = 1.29
 
 # Console colours
 CYAN		= '\033[96m'
@@ -61,19 +61,26 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f'{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}')
     t_start = time.time()
 
-    r.flushall() # Flush current set (removes restricted players).
+    # do not flush as it'll break "Online Users" on hanayo.
+    # r.flushall() # Flush current set (removes restricted players).
+    r.delete(r.keys("ripple:leaderboard:*"))
 
     for relax in range(2):
         print(f'Calculating {"Relax" if relax else "Vanilla"}.')
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
             print(f'Mode: {gamemode}')
 
-            SQL.execute('SELECT {rx}_stats.id, {rx}_stats.pp_{gm}, {rx}_stats.country FROM {rx}_stats LEFT JOIN users ON users.id = {rx}_stats.id WHERE {rx}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(rx='rx' if relax else 'users', gm=gamemode))
+            SQL.execute('SELECT {rx}_stats.id, {rx}_stats.pp_{gm}, {rx}_stats.country, users.latest_activity FROM {rx}_stats LEFT JOIN users ON users.id = {rx}_stats.id WHERE {rx}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(rx='rx' if relax else 'users', gm=gamemode))
 
+            currentTime = int(time.time())
             for row in SQL.fetchall():
-                userID  = int(row[0])
-                pp      = float(row[1])
-                country = row[2].lower()
+                userID       = int(row[0])
+                pp           = float(row[1])
+                country      = row[2].lower()
+                daysInactive = (currentTime - int(row[3])) / 60 / 60 / 24
+                
+                if daysInactive > 60:
+                    continue
 
                 r.zadd(f'ripple:{"relax" if relax else "leader"}board:{gamemode}', userID, pp)
 
