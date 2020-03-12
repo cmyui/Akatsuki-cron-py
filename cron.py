@@ -64,6 +64,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     # do not flush as it'll break "Online Users" on hanayo.
     # r.flushall() # Flush current set (removes restricted players).
     r.delete(r.keys("ripple:leaderboard:*"))
+    r.delete(r.keys("ripple:relaxboard:*"))
 
     for relax in range(2):
         print(f'Calculating {"Relax" if relax else "Vanilla"}.')
