@@ -162,7 +162,7 @@ def addSupporterBadges():
     print(f'{CYAN}-> Adding donation badges.{ENDC}')
     t_start = time.time()
 
-    SQL.execute('UPDATE users_stats LEFT JOIN users ON users_stats.id = users.id SET users_stats.can_custom_badge = 1, users_stats.show_custom_badge = 1 WHERE users.donor_expire > %s', [int(time.time())])
+    SQL.execute('UPDATE users_stats LEFT JOIN users ON users_stats.id = users.id SET users_stats.can_custom_badge = 1 WHERE users.donor_expire > %s', [int(time.time())])
     print(f'{GREEN}-> Donation badges added to users.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     return True
 
