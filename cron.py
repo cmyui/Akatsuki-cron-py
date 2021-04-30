@@ -2,12 +2,21 @@ import redis
 import mysql.connector
 from mysql.connector import errorcode
 import time
-import requests
 import os
 import sys
 
+# this program is stupid and is made to maintain the cache in a way
+# that shouldn't have been done in the first place. we are in the
+# process of rewriting akatsuki's backend in our open source project
+# which can be found @ https://github.com/cmyui/gulag. cheers lol
+
+# this is some code from when i was still pretty early in my
+# programming journey, but theres really no reason to update it..
+
+# some things are quite cursed but it does the job for the temporary server :P
+
 # Akatsuki-cron-py version number.
-VERSION = 1.29
+VERSION = 1.30
 
 # Console colours
 CYAN		= '\033[96m'
@@ -61,17 +70,23 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f'{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}')
     t_start = time.time()
 
-    # do not flush as it'll break "Online Users" on hanayo.
-    # r.flushall() # Flush current set (removes restricted players).
-    r.delete(r.keys("ripple:leaderboard:*"))
-    r.delete(r.keys("ripple:relaxboard:*"))
+    # delete current cache & rebuild it
+    r.delete(*r.keys("ripple:leaderboard:*"))
+    r.delete(*r.keys("ripple:relaxboard:*"))
 
     for relax in range(2):
         print(f'Calculating {"Relax" if relax else "Vanilla"}.')
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
             print(f'Mode: {gamemode}')
 
-            SQL.execute('SELECT {rx}_stats.id, {rx}_stats.pp_{gm}, {rx}_stats.country, users.latest_activity FROM {rx}_stats LEFT JOIN users ON users.id = {rx}_stats.id WHERE {rx}_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(rx='rx' if relax else 'users', gm=gamemode))
+            SQL.execute(
+                'SELECT {rx}_stats.id, {rx}_stats.pp_{gm}, '
+                '{rx}_stats.country, users.latest_activity '
+                'FROM {rx}_stats '
+                'LEFT JOIN users ON users.id = {rx}_stats.id '
+                'WHERE {rx}_stats.pp_{gm} > 0 AND users.privileges & 1 '
+                'ORDER BY pp_{gm} DESC'.format(rx='rx' if relax else 'users', gm=gamemode)
+            )
 
             currentTime = int(time.time())
             for row in SQL.fetchall():
@@ -79,7 +94,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
                 pp           = float(row[1])
                 country      = row[2].lower()
                 daysInactive = (currentTime - int(row[3])) / 60 / 60 / 24
-                
+
                 if daysInactive > 60:
                     continue
 
@@ -143,7 +158,7 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     return True
 
 
-def addSupporterBadges(): # This is retarded please cmyui do this properly in the future TODO fucking hell.
+def addSupporterBadges():
     print(f'{CYAN}-> Adding donation badges.{ENDC}')
     t_start = time.time()
 
@@ -169,8 +184,6 @@ def calculateScorePlaycount():
             for user in users:
                 total_score, ranked_score, playcount = [0] * 3
 
-                # Get every score the user has ever submitted.
-                # .format sql queries hahahahah fuck you i don't care
                 SQL.execute('''SELECT scores{akatsuki_mode}.score, scores{akatsuki_mode}.completed, beatmaps.ranked
                                FROM scores{akatsuki_mode}
                                LEFT JOIN beatmaps ON scores{akatsuki_mode}.beatmap_md5 = beatmaps.beatmap_md5
